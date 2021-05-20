@@ -5,16 +5,21 @@
 #include <cmath>
 #include <vector>
 #include <string>  
+#include <map>
 
 using namespace std;
 
-const int X_COORD = 50;// X - размерность ] должны
-const int Y_COORD = 50;// Y - размерность ] быть равными
-const float ITERATIONS = 0.06;// прорисовка графика (чем меньше тем лучше)
+map <string, string> slovar;
+
+int X_COORD = 50;// X - размерность ] должны
+int Y_COORD = 50;// Y - размерность ] быть равными
+const float ITERATIONS = 0.01;// прорисовка графика (чем меньше тем лучше)
 
 int x_off = X_COORD / 2;// начало
 int y_off = Y_COORD / 2;// оси координат
 
+int mainWindow;
+string formula;
 //исходная функция
 #define expr x
 
@@ -25,11 +30,11 @@ void drawgrid(float SERIF_OFFSET, float SERIF_DISTANCE) {
 
     //рисуем координатные оси
     //горизонталь
-    glVertex2f(0.0, Y_COORD / 2);
-    glVertex2f(X_COORD, Y_COORD / 2);
+    glVertex2f(-900.0, Y_COORD / 2);
+    glVertex2f(900, Y_COORD / 2);
     //засечки по горизонтали
     int p = X_COORD / 2;
-    for (int i = X_COORD / 2; i < X_COORD; i += SERIF_DISTANCE, p -= SERIF_DISTANCE) {
+    for (int i = -900; i < 900; i += SERIF_DISTANCE, p -= SERIF_DISTANCE) {
         glVertex2f(i, Y_COORD / 2);
         glVertex2f(i, Y_COORD / 2 + SERIF_OFFSET);
 
@@ -38,10 +43,10 @@ void drawgrid(float SERIF_OFFSET, float SERIF_DISTANCE) {
     }
     //вертикаль
     int t = Y_COORD / 2;
-    glVertex2f(X_COORD / 2, Y_COORD);
-    glVertex2f(X_COORD / 2, 0.0);
+    glVertex2f(X_COORD / 2, -900);
+    glVertex2f(X_COORD / 2, 900.0);
     //засечки по вертикали
-    for (int i = Y_COORD / 2; i < Y_COORD; i += SERIF_DISTANCE, t -= SERIF_DISTANCE) {
+    for (int i = -900; i < 900; i += SERIF_DISTANCE, t -= SERIF_DISTANCE) {
         glVertex2f(X_COORD / 2, i);
         glVertex2f(Y_COORD / 2 + SERIF_OFFSET, i);
 
@@ -51,7 +56,10 @@ void drawgrid(float SERIF_OFFSET, float SERIF_DISTANCE) {
     glEnd();
 }
 bool operation(char c) {
-    return c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == 's' || c == 'c' || c == 't' || c == 'a';
+    for (auto it = slovar.begin(); it != slovar.end(); ++it)
+        if (it->second[0] == c)
+            return true;
+    return c == '+' || c == '-' || c == '*' || c == '/' || c == '^';
 }
 
 //данная функция будет возвращать приоритет поступившей операции
@@ -71,10 +79,26 @@ void action(vector<float>& value, char op) {
         float unitar = value.back();
         value.pop_back();
         if (-op == '-')value.push_back(-unitar);
-        else if (-op == 's')value.push_back(sin(unitar));
-        else if (-op == 'c')value.push_back(cos(unitar));
-        else if (-op == 't')value.push_back(tan(unitar));
-        else if (-op == 'a')value.push_back(abs(unitar));
+        else if (-op == slovar["sin"][0])value.push_back(sin(unitar));
+        else if (-op == slovar["cos"][0])value.push_back(cos(unitar));
+        else if (-op == slovar["tg"][0])value.push_back(tan(unitar));
+        else if (-op == slovar["abs"][0])value.push_back(abs(unitar));
+        else if (-op == slovar["arccos"][0])value.push_back(acos(unitar));
+        else if (-op == slovar["arcsin"][0])value.push_back(asin(unitar));
+        else if (-op == slovar["ch"][0])value.push_back(cosh(unitar));
+        else if (-op == slovar["sh"][0])value.push_back(sinh(unitar));
+        else if (-op == slovar["th"][0])value.push_back(tanh(unitar));
+        else if (-op == slovar["arctan"][0])value.push_back(atan(unitar));
+        else if (-op == slovar["arcsh"][0])value.push_back(asinh(unitar));
+        else if (-op == slovar["arcch"][0])value.push_back(acosh(unitar));
+        else if (-op == slovar["arcth"][0])value.push_back(atanh(unitar));
+        else if (-op == slovar["ln"][0])value.push_back(log(unitar));
+        else if (-op == slovar["log10"][0])value.push_back(log10(unitar));
+        else if (-op == slovar["log2"][0])value.push_back(log2(unitar));
+        else if (-op == slovar["e"][0])value.push_back(exp(unitar));
+        else if (-op == slovar["sqrt"][0])value.push_back(sqrt(unitar));
+
+
     }
     else {                               //для бинарных операций
         float right = value.back();
@@ -151,17 +175,19 @@ float yfunction(float X, string formula)
 }
 void drawfunc() {
     //рисуем график
-    glBegin(GL_POINTS);
+    glBegin(GL_LINE_STRIP);
     glPointSize(15);
     glLineWidth(40);
     float y = 0;
     glColor3f(0.8, 0.0, 0.8);
-    /*string formula;
+   /* string formula;
     cin >> formula;*/
-    for (float x = -X_COORD * 2; x < X_COORD * 2; x += ITERATIONS) {
+    float y2= yfunction(-200, formula);
+    bool endpaint = false;
+    for (float x = -100 * 2; x < 100 * 2; x += ITERATIONS) {
         //перерасчитываем координаты
        // cout << "x = " << x << endl;
-        y = yfunction(x, "s(x)");
+        y = yfunction(x, formula);
         glPointSize(90);
         glVertex2f(x_off + x, y_off + y);//не убирать x и y!! это оффсет по осям!
     }
@@ -175,32 +201,134 @@ void funcinfo(int val1, int val2) {
         cout << x << " : " << j << endl;
     }
 }
-void movecamera()
+
+void movecamera(int key, int x, int y)
 {
-     if (GetKeyState(VK_UP) <0)glTranslatef(0, 1, 0);
-     else if (GetKeyState(VK_DOWN) < 0)glTranslatef(0, -1, 0);
+    switch (key)
+    {
+        case GLUT_KEY_UP:
+        {
+            glTranslatef(0, 1, 0);
+            break;
+        }
+        case GLUT_KEY_DOWN:
+        {
+            glTranslatef(0, -1, 0);
+            break;
+        }
+        case GLUT_KEY_LEFT:
+        {
+            glTranslatef(-1, 0, 0);
+            break;
+        }
+        case GLUT_KEY_RIGHT:
+        {
+            glTranslatef(1, 0, 0);
+            break;
+        }
+        default:
+        {
+
+            cout << key << endl;
+            break;
+        }
+    
+        /*if (GetKeyState(VK_UP) < 0)glTranslatef(0, 1, 0);
+        else if (GetKeyState(VK_DOWN) < 0)glTranslatef(0, -1, 0);
+        else if (GetKeyState(VK_LEFT) < 0)glTranslatef(-1, 0, 0);
+        else if (GetKeyState(VK_RIGHT) < 0)glTranslatef(1, 0, 0);*/
+    }
+    glutSetWindow(mainWindow);
+    glutPostRedisplay();
+
+}
+void scalecamera(unsigned char key , int x, int y)
+{
+    switch (key)
+    {
+    case '+':
+    {
+        glScalef(1.1, 1.1, 0);
+        glTranslatef(-2.3, -2.3, 0);
+        /*X_COORD +=20;
+        Y_COORD +=20;*/
+        break;
+    }
+    case '-':
+    {
+        glScalef(1/1.1, 1 / 1.1, 0);
+        glTranslatef(2.5, 2.5, 0);
+        break;
+    }
+    default:
+    {
+
+        cout << key << endl;
+        break;
+    }
+    /*if (GetKeyState(VK_UP) < 0)glTranslatef(0, 1, 0);
+    else if (GetKeyState(VK_DOWN) < 0)glTranslatef(0, -1, 0);
+    else if (GetKeyState(VK_LEFT) < 0)glTranslatef(-1, 0, 0);
+    else if (GetKeyState(VK_RIGHT) < 0)glTranslatef(1, 0, 0);*/
+    }
+    x_off = X_COORD / 2;
+    y_off = Y_COORD / 2;
+    glutSetWindow(mainWindow);
+    glutPostRedisplay();
 
 }
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     //cout << "Osnovnie toshki po vashemu grafiku: \n";
-        movecamera();
-        drawgrid(0.3, 1);
-        drawfunc();
+    glutSpecialFunc(movecamera);
+    glutKeyboardFunc(scalecamera);
+    drawgrid(0.3, 1);
+    drawfunc();
     //funcinfo(-5, 5);
 
     glutSwapBuffers();
-
     glFlush();
 }
-
+void StringHandler()
+{
+    for (map<string, string>::iterator it = slovar.begin(); it != slovar.end(); ++it) {
+        size_t pos = 0;
+        while ((pos = formula.find(it->first, pos)) != string::npos)
+        {
+            formula.replace(pos, it->first.size(), it->second);
+            pos += it->second.size();
+        }
+    }
+    cout << formula << endl;
+}
 int main(int argc, char** argv) {
+    slovar["sin"] = "s";
+    slovar["cos"] = "c";
+    slovar["tg"] = "t";
+    slovar["abs"] = "a";
+    slovar["arccos"] = "q";
+    slovar["arcsin"] = "w";
+    slovar["ch"] = "r";
+    slovar["sh"] = "d";
+    slovar["th"] = "g";
+    slovar["arctan"] = "h";
+    slovar["arcsh"] = "j";
+    slovar["arcch"] = "k";
+    slovar["arcth"] = "l";
+    slovar["ln"] = "m";
+    slovar["log10"] = "n";
+    slovar["log2"] = "b";
+    slovar["e"] = "v";
+    slovar["sqrt"] = "W";
+    cout << "Enter function formula: y=";
+    cin >> formula;
+    StringHandler();
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
     glutInitWindowSize(800, 800);
     glutInitWindowPosition(600, 100);
-    glutCreateWindow("Графики");
+    mainWindow = glutCreateWindow("Графики");
 
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glMatrixMode(GL_PROJECTION);
