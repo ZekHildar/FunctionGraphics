@@ -7,6 +7,7 @@
 #include <string>  
 #include <map>
 #include <fstream>
+#include <stdlib.h>  
 
 
 using namespace std;
@@ -14,28 +15,26 @@ using namespace std;
 map <string, string> slovar;
 vector<string>formulas;
 string path = "Formulas1.txt";
-int X_COORD = 50;// X - размерность ] должны
-int Y_COORD = 50;// Y - размерность ] быть равными
-const float ITERATIONS = 0.1;// прорисовка графика (чем меньше тем лучше)
+int X_COORD = 50;// Размерность оси координат по оси X и Y
+int Y_COORD = X_COORD;
+const float ITERATIONS = 0.1;// Размер шага для вычисления значения для функции. Для построения более точного графика значение понизить
 
-int x_off = X_COORD / 2;// начало
-int y_off = Y_COORD / 2;// оси координат
+int x_off = X_COORD / 2; //Начало оси координат
+int y_off = Y_COORD / 2;
 
 int mainWindow;
 string formula;
-//исходная функция
-#define expr x
+
 
 void drawgrid(float SERIF_OFFSET, float SERIF_DISTANCE) {
     glBegin(GL_LINES);
-    //задаем цвета
+    //Цвет для отрисовки осей и засечек
     glColor3f(0.0, 0.0, 0.0);
 
-    //рисуем координатные оси
-    //горизонталь
+    //Горизонтальная ось
     glVertex2f(-900.0, Y_COORD / 2);
     glVertex2f(900, Y_COORD / 2);
-    //засечки по горизонтали
+    //Засечки по горизонтали
     int p = X_COORD / 2;
     for (int i = -900; i < 900; i += SERIF_DISTANCE, p -= SERIF_DISTANCE) {
         glVertex2f(i, Y_COORD / 2);
@@ -44,11 +43,11 @@ void drawgrid(float SERIF_OFFSET, float SERIF_DISTANCE) {
         glVertex2f(p, Y_COORD / 2);
         glVertex2f(p, Y_COORD / 2 + SERIF_OFFSET);
     }
-    //вертикаль
+    //Вертикальная ось
     int t = Y_COORD / 2;
     glVertex2f(X_COORD / 2, -900);
     glVertex2f(X_COORD / 2, 900.0);
-    //засечки по вертикали
+    //Засечки по вертикали
     for (int i = -900; i < 900; i += SERIF_DISTANCE, t -= SERIF_DISTANCE) {
         glVertex2f(X_COORD / 2, i);
         glVertex2f(Y_COORD / 2 + SERIF_OFFSET, i);
@@ -65,7 +64,8 @@ bool operation(char c) {
     return c == '+' || c == '-' || c == '*' || c == '/' || c == '^';
 }
 
-//данная функция будет возвращать приоритет поступившей операции
+
+//Функций, возвращающая приоритет поступившей операции
 int prioritet(char op) {
     if (op < 0) return 3;
     else {
@@ -76,9 +76,10 @@ int prioritet(char op) {
     }
 }
 
-//следующая функция описывает принцип работы каждого оператора
+//Функция, которая описывает работу кажного оператора для программы
 void action(vector<float>& value, char op) {
-    if (op < 0) {                            //для унарных операций
+    if (op < 0) {                           
+        //Для унарных операций
         float unitar = value.back();
         value.pop_back();
         if (-op == '-')value.push_back(-unitar);
@@ -103,7 +104,8 @@ void action(vector<float>& value, char op) {
 
 
     }
-    else {                               //для бинарных операций
+    else {                               
+        //Для бинарных операций
         float right = value.back();
         value.pop_back();
         float left = value.back();
@@ -117,52 +119,52 @@ void action(vector<float>& value, char op) {
 }
 float calculus(string& formula) {
 
-    bool unary = true;        //создадим булевскую переменную, для распределения операторов на унарные и бинарные
-    vector<float>value;        //заведем массив для целых чисел
-    vector<char>op;           //и соответственно для самых операторов
+    bool unary = true;        //Создадим булевскую переменную, для распределения операторов на унарные и бинарные
+    vector<float>value;       //Создадим массив для целых чисел
+    vector<char>op;           //Создадим масссив для операторов
     for (int i = 0; i < formula.size(); i++) {
-        if (formula[i] == '(') {    //если текущий элемент — открывающая скобка, то положим её в стек
+        if (formula[i] == '(') {    //Если текущий элемент — открывающая скобка, то положим её в стек
             op.push_back('(');
             unary = true;
         }
         else if (formula[i] == ')') {
-            while (op.back() != '(') {  //если закрывающая скобка - выполняем все операции, находящиеся внутри этой скобки
+            while (op.back() != '(') {  //Если закрывающая скобка - выполняем все операции, находящиеся внутри этой скобки
                 action(value, op.back());
                 op.pop_back();
             }
             op.pop_back();
             unary = false;
         }
-        else if (operation(formula[i])) { //если данный элемент строки является одни из выше перечисленных операндов,то
+        else if (operation(formula[i])) { //Если данный элемент строки является одни из выше перечисленных операндов,то
             char zn = formula[i];
-            if (unary == true)zn = -zn; //придает отрицательное значение, для распознавания функции унарности оператора 
+            if (unary == true)zn = -zn; //Придает отрицательное значение, для распознавания функции унарности оператора 
             while (!op.empty() && prioritet(op.back()) >= prioritet(zn)) {
-                action(value, op.back());   //выполняем сами алгебраические вычисления, где все уже операции упорядочены  
-                op.pop_back();              //в одном из стеков по строгому убыванию приоритета, если двигаться от вершины
+                action(value, op.back());   //Выполняем сами алгебраические вычисления, где все уже операции упорядочены  
+                op.pop_back();              //В одном из стеков по строгому убыванию приоритета, если двигаться от вершины
             }
             op.push_back(zn);
             unary = true;
         }
         else {
-            string number;      //заведем строку для найденных числовых операндов
+            string number;      //Заведем строку для найденных числовых операндов
             while (i < formula.size() && (isdigit(formula[i]) || formula[i] == '.')) {
-                number += formula[i++];//распознаем их с помощью библиотечной функции строк
+                number += formula[i++];//Распознаем их с помощью библиотечной функции строк
             }
             i--;
-            value.push_back(atof(number.c_str()));//поместим в наш стек с числовыми выражениями
+            value.push_back(atof(number.c_str()));//Поместим в наш стек с числовыми выражениями
             unary = false;
         }
     }
-    while (!op.empty()) {     //выполним еще не использованные операции в стеке 
+    while (!op.empty()) {     //Выполним еще не использованные операции в стеке 
         action(value, op.back());
         op.pop_back();
     }
-    return value.back(); //получим на выходе значение выражения
+    return value.back(); //Получим на выходе значение выражения
 }
 float yfunction(float X, string formula)
 {
-    string x = to_string(X); //введем две строки: сам многочлен/числовое выражение и по необходимости значение переменной 
-    if (x[0] == '-') {  //для слаженной работы унитарного минуса при отрицательном значении переменной, заключим его в скобки
+    string x = to_string(X); //ВВедем две строки: сам многочлен/числовое выражение и по необходимости значение переменной 
+    if (x[0] == '-') {  //Для нормальной работы унитарного минуса при отрицательном значении переменной, заключим его в скобки
         x.insert(x.begin(), '(');
         x.insert(x.end(), ')');
     }
@@ -170,43 +172,31 @@ float yfunction(float X, string formula)
     for (int i = 0; i < formula.size(); i++) {
         if (formula[i] == 'x') {
             formula.erase(i, 1);
-            formula.insert(i, x);//проведем замену
+            formula.insert(i, x);//Проведем замену
         }
     }
-   // cout << " " <<  calculus(formula) << " ";
-    return calculus(formula);  //выведем ответ
+    return calculus(formula);  //Выведем ответ
 }
 void drawfunc() {
-    //рисуем график
-    glBegin(GL_LINE_STRIP);
+    //Функция отрисовки графика
+    glBegin(GL_LINE_STRIP); //Если поставить кол-во итераций как можно меньше, то можно использовать GL_POINTS,
+                            //дабы избежать проблем с соединением точек, которые не должны быть соединены.
     glPointSize(15);
     glLineWidth(40);
     float y = 0;
     glColor3f(0.8, 0.0, 0.8);
-   /* string formula;
-    cin >> formula;*/
-    float y2= yfunction(-200, formula);
-    bool endpaint = false;
+   
     for (float x = -100 * 2; x < 100 * 2; x += ITERATIONS) {
-        //перерасчитываем координаты
-       // cout << "x = " << x << endl;
         y = yfunction(x, formula);
         glPointSize(90);
-        glVertex2f(x_off + x, y_off + y);//не убирать x и y!! это оффсет по осям!
+        glVertex2f(x_off + x, y_off + y);//Относительно центра координат ставим точку по x и y
     }
     glEnd();
 }
 
-void funcinfo(int val1, int val2) {
-    //информация о графике
-    for (float x = val1; x <= val2; x++) {
-        float j = expr;
-        cout << x << " : " << j << endl;
-    }
-}
-
 void movecamera(int key, int x, int y)
 {
+    //Перемещение камеры, стрелки на клавиатуре
     switch (key)
     {
         case GLUT_KEY_UP:
@@ -235,11 +225,6 @@ void movecamera(int key, int x, int y)
             cout << key << endl;
             break;
         }
-    
-        /*if (GetKeyState(VK_UP) < 0)glTranslatef(0, 1, 0);
-        else if (GetKeyState(VK_DOWN) < 0)glTranslatef(0, -1, 0);
-        else if (GetKeyState(VK_LEFT) < 0)glTranslatef(-1, 0, 0);
-        else if (GetKeyState(VK_RIGHT) < 0)glTranslatef(1, 0, 0);*/
     }
     glutSetWindow(mainWindow);
     glutPostRedisplay();
@@ -247,14 +232,14 @@ void movecamera(int key, int x, int y)
 }
 void scalecamera(unsigned char key , int x, int y)
 {
+    //Приближение и отдаление камеры
+    //По желанию можно настроить кнопки, дебаг для определения названия клавиши ниже
     switch (key)
     {
     case '+':
     {
         glScalef(1.1, 1.1, 0);
         glTranslatef(-2.3, -2.3, 0);
-        /*X_COORD +=20;
-        Y_COORD +=20;*/
         break;
     }
     case '-':
@@ -265,14 +250,10 @@ void scalecamera(unsigned char key , int x, int y)
     }
     default:
     {
-
-        cout << key << endl;
+        //Дебаг для определения клавиши
+        /*cout << key << endl;*/
         break;
     }
-    /*if (GetKeyState(VK_UP) < 0)glTranslatef(0, 1, 0);
-    else if (GetKeyState(VK_DOWN) < 0)glTranslatef(0, -1, 0);
-    else if (GetKeyState(VK_LEFT) < 0)glTranslatef(-1, 0, 0);
-    else if (GetKeyState(VK_RIGHT) < 0)glTranslatef(1, 0, 0);*/
     }
     x_off = X_COORD / 2;
     y_off = Y_COORD / 2;
@@ -281,20 +262,20 @@ void scalecamera(unsigned char key , int x, int y)
 
 }
 void display() {
+    //Функция вывода всего в окно и управления всем этим
     glClear(GL_COLOR_BUFFER_BIT);
 
-    //cout << "Osnovnie toshki po vashemu grafiku: \n";
     glutSpecialFunc(movecamera);
     glutKeyboardFunc(scalecamera);
     drawgrid(0.3, 1);
     drawfunc();
-    //funcinfo(-5, 5);
 
     glutSwapBuffers();
     glFlush();
 }
 void StringHandler()
 {
+    //Ищем в строке названия функций и заменяем их на символы, которые обозначают эти функции
     for (map<string, string>::iterator it = slovar.begin(); it != slovar.end(); ++it) {
         size_t pos = 0;
         while ((pos = formula.find(it->first, pos)) != string::npos)
@@ -303,10 +284,12 @@ void StringHandler()
             pos += it->second.size();
         }
     }
-    cout << formula << endl;
+    /*cout << formula << endl;*/
+    //Для дебага
 }
 void ReadFormulasStreams()
 {
+    //Читаем из текстового файла формулы, которые мы запомнили
     ifstream f;
     f.open(path);
     string formulastream;
@@ -314,14 +297,24 @@ void ReadFormulasStreams()
     {
         f >> formulastream;
         formulas.push_back(formulastream);
-        cout << formulas[0] << endl;
+    }
+}
+void ListOfFormulas()
+{
+    //Выводим историю формул на экран
+    int size = formulas.size();
+    for (int i = 0; i < size-1; i++)
+    {
+        cout << i + 1 << ". " << formulas[i]<<endl;
     }
 }
 void WriteFormulaToFile(string formulastream)
 {
+    //Записываем формулу в файл
     ofstream f;
-    f.open(path);
+    f.open(path, ofstream::app);
     f << formulastream;
+    f << "\n";
     f.close();
 }
 void WriteInfoTextOnScreen()
@@ -330,8 +323,45 @@ void WriteInfoTextOnScreen()
     cout << " Арккосинус - arccos()\n Арктангенс - arctan()\n Шинус - sh()\n Кошинус - ch()\n Гиперболический тангенс - th()\n Аркшинус - arcsh()\n Арккошинус - arcch()\n Арк-гиперболический тангенс - arcth()\n";
     cout << " Натуральный логарифм - ln()\n Десятичный логарифм - log10()\n Двоичный логарифм - log2()\n Экспонента в степени (степень в скобках) - e()\n\n\n";
 }
+void Menu()
+{
+    cout << "1. История формул" << endl;
+    cout << "2. Ввод формулы" << endl;
+    cout << "0. Выйти из программы" << endl << "  >>";
+    char choice;
+    scanf_s("%c", &choice);
+    switch (choice)
+    {
+        case '1':
+        {
+            system("cls");
+            ListOfFormulas();
+            cout << "Выбор формулы: ";
+            int number;
+            cin >> number;
+            formula = formulas[number - 1];
+            break;
+        }
+        case '2':
+        {
+            system("cls");
+            WriteInfoTextOnScreen();
+            cout << "Введите формулу: ";
+            cin >> formula;
+            WriteFormulaToFile(formula);
+            break;
+        }
+        case '0':
+        {
+            system("cls");
+            exit(3);
+            break;
+        }
+        break;
+    }
+}
 int main(int argc, char** argv) {
-    ReadFormulasStreams();
+    // Для мапы
     slovar["sin"] = "s";
     slovar["cos"] = "c";
     slovar["tg"] = "t";
@@ -350,32 +380,22 @@ int main(int argc, char** argv) {
     slovar["log2"] = "b";
     slovar["e"] = "v";
     slovar["sqrt"] = "W";
-    setlocale(LC_ALL, "Russian");
-    
-    cout << "1. История формул" << endl;
-    cout << "2. Ввод формулы" << endl;
-    cout << "0. Выйти из программы" << endl << "  >>";
-    char choice;
-    cin >> choice; 
-    if (choice == '0') return 0;
-    if (choice == '2') 
-    cout << "Enter function formula: y=";
-    cin >> formula;
-    cout << formula;
-    WriteFormulaToFile(formula);
+    // Для мапы
+
+    ReadFormulasStreams();
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
+    Menu();
     StringHandler();
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
     glutInitWindowSize(800, 800);
     glutInitWindowPosition(600, 100);
     mainWindow = glutCreateWindow("Графики");
-    //s
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    //пространство координат
     glOrtho(0.0, X_COORD, 0.0, Y_COORD, -1.0, 1.0);
-
     glutDisplayFunc(display);
     glutMainLoop();
 }
