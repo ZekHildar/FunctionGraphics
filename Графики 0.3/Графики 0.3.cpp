@@ -6,14 +6,17 @@
 #include <vector>
 #include <string>  
 #include <map>
+#include <fstream>
+
 
 using namespace std;
 
 map <string, string> slovar;
-
+vector<string>formulas;
+string path = "Formulas1.txt";
 int X_COORD = 50;// X - размерность ] должны
 int Y_COORD = 50;// Y - размерность ] быть равными
-const float ITERATIONS = 0.01;// прорисовка графика (чем меньше тем лучше)
+const float ITERATIONS = 0.1;// прорисовка графика (чем меньше тем лучше)
 
 int x_off = X_COORD / 2;// начало
 int y_off = Y_COORD / 2;// оси координат
@@ -302,7 +305,33 @@ void StringHandler()
     }
     cout << formula << endl;
 }
+void ReadFormulasStreams()
+{
+    ifstream f;
+    f.open(path);
+    string formulastream;
+    while (!f.eof())
+    {
+        f >> formulastream;
+        formulas.push_back(formulastream);
+        cout << formulas[0] << endl;
+    }
+}
+void WriteFormulaToFile(string formulastream)
+{
+    ofstream f;
+    f.open(path);
+    f << formulastream;
+    f.close();
+}
+void WriteInfoTextOnScreen()
+{
+    cout << "Список поддерживаемых формул:\n\n Квадратный корень - sqrt()\n Синус - sin()\n Косинус - cos()\n Тангенс - tg()\n Модуль числа - abs()\n Арксинус - arcsin()\n";
+    cout << " Арккосинус - arccos()\n Арктангенс - arctan()\n Шинус - sh()\n Кошинус - ch()\n Гиперболический тангенс - th()\n Аркшинус - arcsh()\n Арккошинус - arcch()\n Арк-гиперболический тангенс - arcth()\n";
+    cout << " Натуральный логарифм - ln()\n Десятичный логарифм - log10()\n Двоичный логарифм - log2()\n Экспонента в степени (степень в скобках) - e()\n\n\n";
+}
 int main(int argc, char** argv) {
+    ReadFormulasStreams();
     slovar["sin"] = "s";
     slovar["cos"] = "c";
     slovar["tg"] = "t";
@@ -321,15 +350,26 @@ int main(int argc, char** argv) {
     slovar["log2"] = "b";
     slovar["e"] = "v";
     slovar["sqrt"] = "W";
+    setlocale(LC_ALL, "Russian");
+    
+    cout << "1. История формул" << endl;
+    cout << "2. Ввод формулы" << endl;
+    cout << "0. Выйти из программы" << endl << "  >>";
+    char choice;
+    cin >> choice; 
+    if (choice == '0') return 0;
+    if (choice == '2') 
     cout << "Enter function formula: y=";
     cin >> formula;
+    cout << formula;
+    WriteFormulaToFile(formula);
     StringHandler();
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
     glutInitWindowSize(800, 800);
     glutInitWindowPosition(600, 100);
     mainWindow = glutCreateWindow("Графики");
-
+    //s
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
