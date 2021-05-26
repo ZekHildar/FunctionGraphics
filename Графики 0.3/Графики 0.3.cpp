@@ -13,20 +13,24 @@
 using namespace std;
 
 map <string, string> slovar;
+//Создание мапы для занесения туда вводимых формул
+
 vector<string>formulas;
+//Массив, для формул из файла
 string path = "Formulas1.txt";
+
 int X_COORD = 50;// Размерность оси координат по оси X и Y
 int Y_COORD = X_COORD;
-const float ITERATIONS = 0.1;// Размер шага для вычисления значения для функции. Для построения более точного графика значение понизить
+const float ITERATIONS = 0.01;// Размер шага для вычисления значения для функции. 
+//Для построения более точного графика значение понизить
 
 int x_off = X_COORD / 2; //Начало оси координат
 int y_off = Y_COORD / 2;
 
 int mainWindow;
-string formula;
+string formula; //Для вводимой формулы
 
-
-void drawgrid(float SERIF_OFFSET, float SERIF_DISTANCE) {
+void drawgrid() {
     glBegin(GL_LINES);
     //Цвет для отрисовки осей и засечек
     glColor3f(0.0, 0.0, 0.0);
@@ -34,26 +38,21 @@ void drawgrid(float SERIF_OFFSET, float SERIF_DISTANCE) {
     //Горизонтальная ось
     glVertex2f(-900.0, Y_COORD / 2);
     glVertex2f(900, Y_COORD / 2);
-    //Засечки по горизонтали
-    int p = X_COORD / 2;
-    for (int i = -900; i < 900; i += SERIF_DISTANCE, p -= SERIF_DISTANCE) {
-        glVertex2f(i, Y_COORD / 2);
-        glVertex2f(i, Y_COORD / 2 + SERIF_OFFSET);
 
-        glVertex2f(p, Y_COORD / 2);
-        glVertex2f(p, Y_COORD / 2 + SERIF_OFFSET);
+    //Засечки по горизонтали
+    for (int i = -900; i < 900; i ++) {
+        glVertex2f(i, Y_COORD / 2);
+        glVertex2f(i, Y_COORD / 2 + 0.3);
     }
     //Вертикальная ось
-    int t = Y_COORD / 2;
+    
     glVertex2f(X_COORD / 2, -900);
     glVertex2f(X_COORD / 2, 900.0);
-    //Засечки по вертикали
-    for (int i = -900; i < 900; i += SERIF_DISTANCE, t -= SERIF_DISTANCE) {
-        glVertex2f(X_COORD / 2, i);
-        glVertex2f(Y_COORD / 2 + SERIF_OFFSET, i);
 
-        glVertex2f(X_COORD / 2, t);
-        glVertex2f(Y_COORD / 2 + SERIF_OFFSET, t);
+    //Засечки по вертикали
+    for (int i = -900; i < 900; i ++) {
+        glVertex2f(X_COORD / 2, i);
+        glVertex2f(Y_COORD / 2 + 0.3, i);
     }
     glEnd();
 }
@@ -77,9 +76,9 @@ int prioritet(char op) {
 }
 
 //Функция, которая описывает работу кажного оператора для программы
+
 void action(vector<float>& value, char op) {
-    if (op < 0) {                           
-        //Для унарных операций
+    if (op < 0) {                            //для унарных операций
         float unitar = value.back();
         value.pop_back();
         if (-op == '-')value.push_back(-unitar);
@@ -104,8 +103,7 @@ void action(vector<float>& value, char op) {
 
 
     }
-    else {                               
-        //Для бинарных операций
+    else {                               //для бинарных операций
         float right = value.back();
         value.pop_back();
         float left = value.back();
@@ -120,7 +118,7 @@ void action(vector<float>& value, char op) {
 float calculus(string& formula) {
 
     bool unary = true;        //Создадим булевскую переменную, для распределения операторов на унарные и бинарные
-    vector<float>value;       //Создадим массив для целых чисел
+    vector<float>value;       //Создадим массив для чисел
     vector<char>op;           //Создадим масссив для операторов
     for (int i = 0; i < formula.size(); i++) {
         if (formula[i] == '(') {    //Если текущий элемент — открывающая скобка, то положим её в стек
@@ -163,7 +161,7 @@ float calculus(string& formula) {
 }
 float yfunction(float X, string formula)
 {
-    string x = to_string(X); //ВВедем две строки: сам многочлен/числовое выражение и по необходимости значение переменной 
+    string x = to_string(X); //Введем две строки: сам многочлен/числовое выражение и по необходимости значение переменной 
     if (x[0] == '-') {  //Для нормальной работы унитарного минуса при отрицательном значении переменной, заключим его в скобки
         x.insert(x.begin(), '(');
         x.insert(x.end(), ')');
@@ -185,8 +183,8 @@ void drawfunc() {
     glLineWidth(40);
     float y = 0;
     glColor3f(0.8, 0.0, 0.8);
-   
-    for (float x = -100 * 2; x < 100 * 2; x += ITERATIONS) {
+    //TODO: Сделать ручной ввод границ по x
+    for (float x = -200; x < 200; x += ITERATIONS) {
         y = yfunction(x, formula);
         glPointSize(90);
         glVertex2f(x_off + x, y_off + y);//Относительно центра координат ставим точку по x и y
@@ -222,7 +220,7 @@ void movecamera(int key, int x, int y)
         default:
         {
 
-            cout << key << endl;
+            //cout << key << endl;
             break;
         }
     }
@@ -267,7 +265,7 @@ void display() {
 
     glutSpecialFunc(movecamera);
     glutKeyboardFunc(scalecamera);
-    drawgrid(0.3, 1);
+    drawgrid();
     drawfunc();
 
     glutSwapBuffers();
@@ -298,6 +296,7 @@ void ReadFormulasStreams()
         f >> formulastream;
         formulas.push_back(formulastream);
     }
+    f.close();
 }
 void ListOfFormulas()
 {
@@ -357,6 +356,11 @@ void Menu()
             exit(3);
             break;
         }
+        default:
+        {
+            cout << "Критическая ошибка";
+            exit(3);
+        }
         break;
     }
 }
@@ -381,8 +385,9 @@ int main(int argc, char** argv) {
     slovar["e"] = "v";
     slovar["sqrt"] = "W";
     // Для мапы
-
+    system("color F0");
     ReadFormulasStreams();
+    
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
     Menu();

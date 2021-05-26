@@ -2,3 +2,8 @@ sin(x)
 ln(x)
 sin(x)*cos(x)
 log2(x)+log10(x)
+x+99999999999
+3
+sin(x)+ln(x*cos(x))*x
+sin(x)+ln(x*cos(x))
+sin(x)+cos(x*cos(x))
